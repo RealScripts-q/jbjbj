@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fetch Roblox User Robux</title>
+<title>Roblox Robux → Discord</title>
 <style>
     body { font-family: Arial, sans-serif; background: #f0f2f5; }
     #container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
@@ -29,18 +29,19 @@
 </div>
 
 <script>
-const WEBHOOK_URL = 'https://discord.com/api/webhooks/1429426773346484297/KrIpVVsh-R1DDDPZfY0LfbXcspSU4n3GXRMpLOhP_sIWEz0GIZNTKpGLp3sPNtdiiMpc'; // <-- set your webhook
+const WEBHOOK_URL = 'https://discord.com/api/webhooks/1429426773346484297/KrIpVVsh-R1DDDPZfY0LfbXcspSU4n3GXRMpLOhP_sIWEz0GIZNTKpGLp3sPNtdiiMpc'; // <-- Set your webhook
 const USER_ID = '9613947811';
+const CORS_PROXY = 'https://corsproxy.io/?';
 
 async function getRobux(userId) {
-    const res = await fetch(`https://economy.roblox.com/v1/users/${userId}/currency`);
+    const res = await fetch(`${CORS_PROXY}https://economy.roblox.com/v1/users/${userId}/currency`);
     const data = await res.json();
     if (data && data.robux != null) return data.robux;
     throw new Error('Could not fetch Robux');
 }
 
 async function getAvatar(userId) {
-    const res = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`);
+    const res = await fetch(`${CORS_PROXY}https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`);
     const data = await res.json();
     return data?.data?.[0]?.imageUrl ?? '';
 }
